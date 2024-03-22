@@ -1,11 +1,12 @@
+import type DatePeriod from "./dateperiod"
+
 class GameNight{
-    dateFrom: Date
-    dateTo: Date
+    id?: string
+    availablePeriod: DatePeriod
     description: string
 
-    constructor(dateFrom: Date, dateTo: Date, description: string){
-        this.dateFrom = dateFrom
-        this.dateTo = dateTo
+    constructor(availablePeriod: DatePeriod, description: string){
+        this.availablePeriod = availablePeriod
         this.description = description
     }
 }

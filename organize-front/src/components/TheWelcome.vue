@@ -2,12 +2,13 @@
   <div class="slot" v-for="meet in meets"> 
     <h3 class="slot-desc">{{ meet.description }}</h3>
     <p>
-      De {{ meet.dateFrom }} a {{ meet.dateTo }}
+      De {{ meet.availablePeriod.dateFrom }} a {{ meet.availablePeriod.dateTo }}
     </p>
   </div>
 </template>
 
 <script lang="ts">
+import DatePeriod from '@/types/dateperiod';
 import GameNight from '@/types/gamenight';
 import { defineComponent } from 'vue';
 
@@ -20,7 +21,7 @@ export default defineComponent({
     }
   },
   mounted() {
-    this.meets.push(new GameNight(new Date(), new Date(), "Quedada juegos"))
+    this.meets.push(new GameNight(new DatePeriod(new Date(), new Date()), "Quedada juegos"))
     console.log(this.meets)
   }
 })
