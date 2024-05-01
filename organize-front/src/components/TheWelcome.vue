@@ -1,5 +1,5 @@
 <template>
-  <div class="slot" v-for="meet in meets" @click="getGnAndOpenModal(meet.id)">
+  <div class="slot" v-for="meet in meets" @click="getGnAndOpenModal(meet.id!)">
     <h3 class="slot-desc">{{ meet.description }}</h3>
     <p>De {{ meet.availablePeriod.dateFrom }} a {{ meet.availablePeriod.dateTo }}</p>
     <button @click="deleteMeet(meet)">Eliminar</button>
@@ -48,9 +48,20 @@
         <h2>hasta</h2>
         <br />
         <span>{{ gamenight.availablePeriod.dateTo }}</span>
+        <div v-if="showUserDates">
+            <div v-for="period in userPeriods.periods">
+              <p>De {{ period.dateFrom }} a {{ period.dateTo }}</p>
+              <button @click="deletePeriod(period)">Eliminar</button>
+            </div>
+            //TODO: Enganchar keycloak para user ID
+            <input v-model="newPeriod.dateFrom" type="datetime-local">
+            <input v-model="newPeriod.dateTo" type="datetime-local">
+            <button>Añadir periodo</button>
+            <button>Enviar</button>
+        </div>
       </template>
       <template #footer>
-        <button @click="">Añadir Fechas Por Usuario</button>
+        <button @click="showUserDates = true">Añadir Fechas Por Usuario</button>
         <button @click="showViewModal = false">Close</button>
       </template>
     </Modal>
@@ -60,8 +71,10 @@
 <script lang="ts">
 import GameNight from '@/types/gamenight'
 import DatePeriod from '@/types/dateperiod'
+import PeriodPerUser from '@/types/periodperuser'
 import { defineComponent } from 'vue'
 import Modal from './Modal.vue'
+import User from '@/types/user'
 
 export default defineComponent({
   components: {
@@ -72,7 +85,10 @@ export default defineComponent({
       meets: new Array<GameNight>(),
       showCreateModal: false,
       showViewModal: false,
-      gamenight: new GameNight(new DatePeriod(new Date(), new Date()), '')
+      showUserDates : false,
+      gamenight: new GameNight(new DatePeriod(new Date(), new Date()), ''),
+      userPeriods : new PeriodPerUser(new Array<DatePeriod>(), new User('')),
+      newPeriod : new DatePeriod(new Date(), new Date())
     }
   },
   methods: {
@@ -116,6 +132,9 @@ export default defineComponent({
         method: 'DELETE'
       })
       this.getMeets()
+    },
+    deletePeriod(period : DatePeriod){
+      console.log('not yet implemented')
     }
   },
   mounted() {
