@@ -53,7 +53,6 @@
               <p>De {{ period.dateFrom }} a {{ period.dateTo }}</p>
               <button @click="deletePeriod(period)">Eliminar</button>
             </div>
-            //TODO: Enganchar keycloak para user ID
             <input v-model="newPeriod.dateFrom" type="datetime-local">
             <input v-model="newPeriod.dateTo" type="datetime-local">
             <button>Añadir periodo</button>
