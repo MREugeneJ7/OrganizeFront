@@ -74,6 +74,7 @@ import PeriodPerUser from '@/types/periodperuser'
 import { defineComponent } from 'vue'
 import Modal from './Modal.vue'
 import User from '@/types/user'
+import KeyCloakService from '@/config/keycloak-plugin'
 
 export default defineComponent({
   components: {
@@ -134,7 +135,14 @@ export default defineComponent({
     },
     deletePeriod(period : DatePeriod){
       console.log('not yet implemented')
-    }
+    },
+    getToken(): string | undefined {
+      return KeyCloakService.GetAccesToken();
+    },
+    getId(): string {
+      let id = KeyCloakService.GetId();
+      return id != undefined ? id : "";
+    },
   },
   mounted() {
     this.getMeets()
