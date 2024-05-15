@@ -55,7 +55,7 @@
             </div>
             <input v-model="newPeriod.dateFrom" type="datetime-local">
             <input v-model="newPeriod.dateTo" type="datetime-local">
-            <button>Añadir periodo</button>
+            <button @click="addPeriod()">Añadir periodo</button>
             <button>Enviar</button>
         </div>
       </template>
@@ -136,6 +136,10 @@ export default defineComponent({
     deletePeriod(period : DatePeriod){
       console.log('not yet implemented')
     },
+    addPeriod(){
+      this.userPeriods.periods.push(this.newPeriod)
+      this.newPeriod = new DatePeriod(new Date(), new Date())
+    },
     getToken(): string | undefined {
       return KeyCloakService.GetAccesToken();
     },
@@ -146,6 +150,7 @@ export default defineComponent({
   },
   mounted() {
     this.getMeets()
+    this.userPeriods.user.id = this.getId()
     console.log(this.meets)
   }
 })
