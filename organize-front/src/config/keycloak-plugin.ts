@@ -29,6 +29,9 @@ const Login = (onAuthenticatedCallback: CallbackOneParam) => {
 const Id = (): string | undefined =>
   keycloakInstance?.tokenParsed?.sub;
 
+const UserName = (): string | undefined =>
+  keycloakInstance?.tokenParsed?.preferred_username;
+
 const Token = (): string | undefined => keycloakInstance?.token;
 
 const LogOut = () => keycloakInstance.logout();
@@ -43,6 +46,7 @@ const KeyCloakService = {
   GetAccesToken: Token,
   CallLogOut: LogOut,
   IsUserAdmin: Admin,
+  GetUserName: UserName
 };
 
 export default KeyCloakService;

@@ -1,9 +1,11 @@
-class User{
-    id : string
+class User {
+  id: string
+  username: string
 
-    constructor(id : string){
-        this.id = id
-    }
+  constructor(id: string, username: string) {
+    this.id = id
+    this.username = username
+  }
 }
 
 export default User

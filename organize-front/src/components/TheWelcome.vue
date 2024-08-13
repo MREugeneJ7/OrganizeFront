@@ -1,7 +1,9 @@
 <template>
-  <div class="slot" v-for="meet in meets" @click="getGnAndOpenModal(meet.id!)">
-    <h3 class="slot-desc">{{ meet.description }}</h3>
-    <p>De {{ meet.availablePeriod.dateFrom }} a {{ meet.availablePeriod.dateTo }}</p>
+  <div class="slot" v-for="meet in meets">
+    <div @click="getGnAndOpenModal(meet.id!)">
+      <h3 class="slot-desc">{{ meet.description }}</h3>
+      <p>De {{ meet.availablePeriod.dateFrom }} a {{ meet.availablePeriod.dateTo }}</p>
+    </div>
     <button @click="deleteMeet(meet)">Eliminar</button>
   </div>
   <button @click="showCreateModal = true">Crear Quedada</button>
@@ -48,19 +50,31 @@
         <h2>hasta</h2>
         <br />
         <span>{{ gamenight.availablePeriod.dateTo }}</span>
+        <h2>Fechas disponibles</h2>
+        <div v-for="period in possiblePeriods">
+          <p>De {{ period.period.dateFrom }} a {{ period.period.dateTo }}</p>
+          <p>Pueden: </p>
+          <ul>
+            <li v-for="user in period.users">
+              {{ user.username }}
+            </li>
+          </ul>
+          <button v-if="period.users.length == 1 && period.users[0].username == getUsername()" @click="deletePeriod(period.period)">Eliminar</button>
+        </div>
         <div v-if="showUserDates">
-            <div v-for="period in userPeriods.periods">
-              <p>De {{ period.dateFrom }} a {{ period.dateTo }}</p>
-              <button @click="deletePeriod(period)">Eliminar</button>
-            </div>
-            <input v-model="newPeriod.dateFrom" type="datetime-local">
-            <input v-model="newPeriod.dateTo" type="datetime-local">
-            <button @click="addPeriod()">Añadir periodo</button>
-            <button>Enviar</button>
+          <h2>Tus Fechas</h2>
+          <div v-for="period in userPeriods.periods">
+            <p>De {{ period.dateFrom }} a {{ period.dateTo }}</p>
+            <button @click="deletePeriod(period)">Eliminar</button>
+          </div>
+          <input v-model="newPeriod.dateFrom" type="datetime-local" />
+          <input v-model="newPeriod.dateTo" type="datetime-local" />
+          <button @click="addPeriod()">Añadir periodo</button>
+          <button @click="updateDatePeriods()">Enviar</button>
         </div>
       </template>
       <template #footer>
-        <button @click="showUserDates = true">Añadir Fechas Por Usuario</button>
+        <button @click="openUserDates(gamenight)">Añadir Fechas Por Usuario</button>
         <button @click="showViewModal = false">Close</button>
       </template>
     </Modal>
@@ -71,6 +85,7 @@
 import GameNight from '@/types/gamenight'
 import DatePeriod from '@/types/dateperiod'
 import PeriodPerUser from '@/types/periodperuser'
+import PossiblePeriod from '@/types/PossiblePeriod'
 import { defineComponent } from 'vue'
 import Modal from './Modal.vue'
 import User from '@/types/user'
@@ -85,10 +100,11 @@ export default defineComponent({
       meets: new Array<GameNight>(),
       showCreateModal: false,
       showViewModal: false,
-      showUserDates : false,
+      showUserDates: false,
       gamenight: new GameNight(new DatePeriod(new Date(), new Date()), ''),
-      userPeriods : new PeriodPerUser(new Array<DatePeriod>(), new User('')),
-      newPeriod : new DatePeriod(new Date(), new Date())
+      userPeriods: new PeriodPerUser(new Array<DatePeriod>(), new User('', '')),
+      newPeriod: new DatePeriod(new Date(), new Date()),
+      possiblePeriods: new Array<PossiblePeriod>()
     }
   },
   methods: {
@@ -109,6 +125,19 @@ export default defineComponent({
       })
       const finalRes = await res.json()
       this.gamenight = finalRes
+
+      console.log(this.gamenight)
+
+      const resP = await fetch('http://localhost:8090/gamenight/' + meetId + '/possiblePeriods', {
+        //headers: {
+        //  Authorization: "Bearer " + this.getToken(),
+        //},
+      })
+      const finalResP = await resP.json()
+      this.possiblePeriods = finalResP
+
+      console.log(this.possiblePeriods)
+
       this.showViewModal = true
     },
     async createGN() {
@@ -133,24 +162,69 @@ export default defineComponent({
       })
       this.getMeets()
     },
-    deletePeriod(period : DatePeriod){
-      console.log('not yet implemented')
+    async updateDatePeriods() {
+      const res = await fetch(
+        'http://localhost:8090/gamenight/' +
+          this.gamenight.id +
+          '/user/' +
+          this.userPeriods.user.id +
+          '/username/' +
+          this.userPeriods.user.username +
+          '/periods',
+        {
+          headers: {
+            'Content-Type': 'application/json'
+            //Authorization: "Bearer " + this.getToken(),
+          },
+          method: 'PATCH',
+          body: JSON.stringify(this.userPeriods.periods, this.replacer)
+        }
+      )
+      const finalRes = await res.json()
+      this.gamenight = finalRes
+      this.getMeets()
     },
-    addPeriod(){
+    deletePeriod(period: DatePeriod) {
+      this.userPeriods.periods = this.userPeriods.periods.filter(
+        (uP) => uP.dateFrom != period.dateFrom || uP.dateTo != period.dateTo
+      )
+    },
+    addPeriod() {
       this.userPeriods.periods.push(this.newPeriod)
       this.newPeriod = new DatePeriod(new Date(), new Date())
     },
     getToken(): string | undefined {
-      return KeyCloakService.GetAccesToken();
+      return KeyCloakService.GetAccesToken()
     },
     getId(): string {
-      let id = KeyCloakService.GetId();
-      return id != undefined ? id : "";
+      let id = KeyCloakService.GetId()
+      return id != undefined ? id : ''
     },
+    getUsername(): string {
+      let username = KeyCloakService.GetUserName()
+      return username != undefined ? username : ''
+    },
+    openUserDates(meet: GameNight) {
+      this.showUserDates = true
+      if (!meet.periodsPerUser)
+        this.userPeriods =new PeriodPerUser(new Array<DatePeriod>(), new User(this.getId(), this.getUsername()))
+      else{
+        this.userPeriods = meet.periodsPerUser.filter((ppu) => ppu.user.id == this.getId())[0]
+        if(!this.userPeriods)
+        this.userPeriods =new PeriodPerUser(new Array<DatePeriod>(), new User(this.getId(), this.getUsername()))
+      }
+    },
+    replacer(key : any, value: any) {
+
+      if(/date.*/.test(key)){
+        return new Date(value).toISOString()
+      }
+
+      return value;
+    }
   },
   mounted() {
     this.getMeets()
-    this.userPeriods.user.id = this.getId()
     console.log(this.meets)
   }
 })

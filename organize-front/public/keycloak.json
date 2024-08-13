@@ -2,7 +2,7 @@
     "realm": "CaloriesRealm",
     "auth-server-url": "http://calories.tplinkdns.com:9886/auth/",
     "ssl-required": "external",
-    "resource": "CaloriesApp",
+    "resource": "Quedadas",
     "public-client": true,
     "confidential-port": 0
   }
